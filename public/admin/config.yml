@@ -1,0 +1,149 @@
+# ===========================================================================
+# Sveltia CMS 設定ファイル
+# ---------------------------------------------------------------------------
+# ここを恋人（非エンジニア）が触る必要はありません。
+# ただし最初の一度だけ、GitHub のユーザー名/リポジトリ名と、
+# 認証用 Cloudflare Worker の URL を正しい値に書き換える必要があります。
+#   - repo:      あなたの「ユーザー名/リポジトリ名」
+#   - base_url:  sveltia-cms-auth Worker の URL（OAuth 認証サーバ）
+# ===========================================================================
+
+backend:
+  name: github
+  repo: saki-0306/saki-homepages # ← あなたの GitHub「ユーザー名/リポジトリ名」に変更
+  branch: main
+  # 「GitHubでログイン」ボタンの認証を担う Cloudflare Worker の URL。
+  # まだ Worker を作っていない場合は、この仮の値のままで OK。
+  # Worker を作ったら、その URL に書き換えてください（末尾スラッシュ無し）。
+  base_url: https://sveltia-cms-auth.your-name.workers.dev
+
+# アップロードした画像の保存先とサイト内での参照パス
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+# 管理画面の表示言語はブラウザの言語設定に自動追従します（日本語環境では日本語）。
+
+collections:
+  # ---- ① ブログ・日記 -----------------------------------------------------
+  - name: blog
+    label: ブログ・日記
+    label_singular: 記事
+    description: タイトル・日付・ジャンルを選んで、本文を Markdown で書きます。
+    folder: content/blog
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    slug: '{{year}}-{{month}}-{{day}}-{{uuid_short}}'
+    sortable_fields: [date, title]
+    fields:
+      - { name: title, label: タイトル, widget: string }
+      - {
+          name: date,
+          label: 日付,
+          widget: datetime,
+          date_format: 'YYYY-MM-DD',
+          time_format: false,
+          format: 'YYYY-MM-DD',
+        }
+      - name: genre
+        label: ジャンル
+        widget: relation
+        collection: genres
+        value_field: slug
+        search_fields: [name, kicker]
+        display_fields: [name]
+      - { name: image, label: アイキャッチ画像（任意）, widget: image, required: false }
+      - { name: body, label: 本文, widget: markdown }
+
+  # ---- ② ジャンル（哲学・文学・語学・社会学…追加も可） --------------------
+  - name: genres
+    label: ジャンル
+    label_singular: ジャンル
+    description: トップに並ぶ「窓」。英字ID（slug）は記事との紐付けに使うので半角英字で。
+    folder: content/genres
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: name
+    slug: '{{fields.slug}}'
+    fields:
+      - { name: name, label: 名称（日本語）, widget: string, hint: '例：芸術' }
+      - {
+          name: slug,
+          label: 英字ID（半角英字・記事との紐付けに使用）,
+          widget: string,
+          pattern: ['^[a-z0-9-]+$', '半角の英小文字・数字・ハイフンのみ'],
+          hint: '例：art',
+        }
+      - { name: kicker, label: 英語ラベル, widget: string, hint: '例：Art' }
+      - { name: kanji, label: 背景に薄く出る一文字, widget: string, hint: '例：芸' }
+      - { name: tagline, label: ひとことの説明, widget: string, hint: '例：美は、沈黙の言語である。' }
+      - { name: order, label: 並び順（小さいほど先）, widget: number, default: 10, value_type: int }
+
+  # ---- ③ お知らせ・近況 ---------------------------------------------------
+  - name: news
+    label: お知らせ・近況
+    label_singular: 近況
+    description: 日時と短いメッセージ。
+    folder: content/news
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    slug: '{{year}}-{{month}}-{{day}}-{{uuid_short}}'
+    sortable_fields: [date]
+    fields:
+      - { name: date, label: 日時, widget: datetime }
+      - { name: message, label: メッセージ, widget: text }
+
+  # ---- ④ 写真ギャラリー ---------------------------------------------------
+  - name: gallery
+    label: 写真ギャラリー
+    label_singular: 写真
+    description: 写真を1枚ずつ。キャプションと撮影日は任意。
+    folder: content/gallery
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: caption
+    slug: 'photo-{{uuid_short}}'
+    sortable_fields: [date]
+    fields:
+      - { name: image, label: 写真, widget: image, required: false }
+      - { name: caption, label: キャプション（任意）, widget: string, required: false }
+      - {
+          name: date,
+          label: 撮影日（任意）,
+          widget: datetime,
+          date_format: 'YYYY-MM-DD',
+          time_format: false,
+          format: 'YYYY-MM-DD',
+          required: false,
+        }
+
+  # ---- ⑤ プロフィール（1ページのみ） -------------------------------------
+  - name: profile
+    label: プロフィール
+    delete: false
+    editor:
+      preview: false
+    files:
+      - name: profile
+        label: プロフィール
+        file: content/profile.md
+        fields:
+          - { name: name, label: 名前, widget: string }
+          - { name: photo, label: プロフィール写真（任意）, widget: image, required: false }
+          - { name: title, label: ひとこと（肩書き）, widget: string }
+          - { name: bio, label: 自己紹介文（空行で段落分け）, widget: text }
+          - name: likes
+            label: 好きなもの
+            widget: list
+            required: false
+            field: { name: item, label: 項目, widget: string }
+          - name: links
+            label: リンク
+            widget: list
+            required: false
+            fields:
+              - { name: label, label: ラベル, widget: string }
+              - { name: url, label: URL, widget: string }
