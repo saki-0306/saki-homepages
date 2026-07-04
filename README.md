@@ -28,7 +28,7 @@ GitHub Pages に公開（数分で反映）
 | フロント | Vite + React + TypeScript（静的サイトとしてビルド） |
 | コンテンツ | リポジトリ内の Markdown（`content/`）。ビルド時に `import.meta.glob` で読み込み |
 | 管理画面 | [Sveltia CMS](https://github.com/sveltia/sveltia-cms)（`public/admin/`、GitHub バックエンド） |
-| ログイン認証 | [sveltia-cms-auth](https://github.com/sveltia/sveltia-cms-auth)（Cloudflare Workers 上の OAuth） |
+| ログイン認証 | Personal Access Token（PAT）方式。Cloudflare Worker も OAuth も不要 |
 | デプロイ | GitHub Actions（`main` への push で自動ビルド＆Pages公開） |
 
 > 🔒 有料サービス・外部DBは使いません。トークン等の秘密情報はフロントに一切埋め込みません
@@ -127,80 +127,67 @@ git push -u origin main
 
 ---
 
-## STEP 4. ログイン認証（Cloudflare Worker）を用意する
+## STEP 4. ログイン方式（トークン／PAT）について
 
-管理画面の「GitHubでログイン」を動かすために、OAuth を仲介する小さな
-Cloudflare Worker（`sveltia-cms-auth`）を無料で立てます。
+この管理画面は **Personal Access Token（PAT）方式** でログインします。
+GitHub は「パスワードでのログイン」を廃止しているため、代わりに
+**トークン（合鍵のような文字列）** を1回貼ってログインします。
 
-### 4-1. GitHub OAuth App を作る
+- **Cloudflare Worker も OAuth アプリも不要**（サーバー代ゼロのまま）
+- `config.yml` は `repo` が正しければOK（`base_url` は書きません）＝設定作業ほぼゼロ
+- トークンはブラウザ内にのみ保存され、サイトには一切埋め込まれません
 
-1. GitHub の **Settings → Developer settings → OAuth Apps → New OAuth App**。
-   （リポジトリの Settings ではなく、アカウントの Settings です）
-2. 次のように入力：
-   - **Application name**: 例 `Saki CMS`
-   - **Homepage URL**: `https://saki-0306.github.io/saki-homepages/`
-   - **Authorization callback URL**: `https://sveltia-cms-auth.<あなたのサブドメイン>.workers.dev/callback`
-     （↑ Worker の URL は次の 4-2 で決まります。いったん仮で入れて、後で正しい値に直してOK）
-3. **Register application** を押す。
-4. **Client ID** が表示されます。**Generate a new client secret** を押して
-   **Client Secret** も発行し、両方メモしておきます（Secret は一度しか表示されません）。
-
-### 4-2. Cloudflare Worker をデプロイする
-
-1. [Cloudflare](https://dash.cloudflare.com/) に無料アカウントでログイン。
-2. sveltia-cms-auth のリポジトリを開く：https://github.com/sveltia/sveltia-cms-auth
-   README の **「Deploy to Cloudflare Workers」** ボタン、または以下の手動デプロイを行います。
-   - 手動の場合: このリポジトリを自分のアカウントに **Fork** →
-     Cloudflare ダッシュボードの **Workers & Pages → Create → Import a repository** から
-     Fork したリポジトリを選んでデプロイ。
-3. デプロイが終わると Worker の URL が決まります。例：
-   `https://sveltia-cms-auth.<あなたのサブドメイン>.workers.dev`
-4. Worker の **Settings → Variables and Secrets** に、以下を **Secret（暗号化）** で追加：
-   - `GITHUB_CLIENT_ID` … 4-1 の Client ID
-   - `GITHUB_CLIENT_SECRET` … 4-1 の Client Secret
-   - `ALLOWED_DOMAINS` … `saki-0306.github.io`（このサイトからのみ認証を許可する安全設定）
-5. 保存して Worker を再デプロイ（Deploy）。
-
-### 4-3. コールバックURLを確定させる
-
-4-1 の OAuth App に戻り、**Authorization callback URL** を
-`https://sveltia-cms-auth.<あなたのサブドメイン>.workers.dev/callback`
-（= 実際の Worker URL ＋ `/callback`）に修正して **Update application**。
+トークンの発行は STEP 6 の中で恋人自身が行えます（CMSがリンクを用意してくれます）。
 
 ---
 
-## STEP 5. config.yml を正しい値に書き換える
+## STEP 5. config.yml の確認（基本そのままでOK）
 
-`public/admin/config.yml` の先頭を、実際の値に直します。
+`public/admin/config.yml` の先頭が、実際のリポジトリになっていればOKです。
 
 ```yaml
 backend:
   name: github
-  repo: saki-0306/saki-homepages          # ← あなたの「ユーザー名/リポジトリ名」
+  repo: saki-0306/saki-homepages   # ← あなたの「ユーザー名/リポジトリ名」
   branch: main
-  base_url: https://sveltia-cms-auth.<あなたのサブドメイン>.workers.dev  # ← STEP 4 の Worker URL（末尾スラッシュ無し）
 ```
 
-- `repo` … 実際の `ユーザー名/リポジトリ名`
-- `base_url` … STEP 4-2 で決まった Worker の URL（`/callback` は付けない）
-
-直したら保存し、変更を GitHub に push（GitHub Desktop なら Commit → Push）します。
-自動ビルドが走り、数分で反映されます。
+リポジトリ名を変えた場合だけ `repo` を直して push してください。
+（`base_url` は PAT 方式では不要なので書きません）
 
 ---
 
-## STEP 6. 恋人の使い方（これだけ覚えればOK）
+## STEP 6. 恋人の使い方（ログイン＝トークンを1回貼るだけ）
+
+### 6-1. 初回ログイン（トークンの発行と入力）
 
 1. **https://saki-0306.github.io/saki-homepages/admin/** を開く
-   （サイト右上の「編集」ボタンからも行けます）。
-2. **「GitHubでログイン」** を押して、GitHub アカウントで許可する（初回だけ）。
-3. 左のメニューから種類を選んで編集：
-   - **ブログ・日記** … 「New 記事」→ タイトル・日付・ジャンルを選び、本文を書いて **保存**
-   - **ジャンル** … 「窓」の追加・削除（英字IDは半角英字で。記事との紐付けに使います）
-   - **お知らせ・近況** … 日時と短いメッセージ
-   - **写真ギャラリー** … 写真をアップロード（キャプション・撮影日は任意）
-   - **プロフィール** … 名前・ひとこと・自己紹介・好きなもの・リンク
-4. **保存（Publish）** すると、自動で公開されます（反映まで 1〜3 分）。
+   （公開サイト右上の「編集」ボタンからも行けます）。
+2. ログイン画面で **「Sign In with Token」**（トークンでサインイン）を押す。
+3. 表示されるダイアログ内の **リンク**をクリックすると、GitHub のトークン発行画面が
+   **必要な権限がセットされた状態**で開きます。
+   - トークン種別は **Fine-grained token** を推奨
+   - **Repository access**: `Only select repositories` →「`saki-homepages`」を選択
+   - **Permissions → Repository permissions → Contents** を **Read and write** に
+   - **Expiration（有効期限）** は好みで（長めにすると貼り直しの頻度が減ります）
+4. **Generate token** を押し、表示された**トークン文字列をコピー**。
+5. CMS のダイアログに**貼り付けて確定**。これでログイン完了です
+   （トークンはブラウザに保存され、次回からは自動で入れます）。
+
+> 💡 2回目以降は、同じブラウザなら基本ログインしたままです。
+> 別の端末・別ブラウザで使うときや、有効期限が切れたときだけ、また貼り直します。
+
+### 6-2. 編集のしかた
+
+左のメニューから種類を選んで編集します。
+
+- **ブログ・日記** … 「新規」→ タイトル・日付・ジャンルを選び、本文を書いて **保存**
+- **ジャンル** … 「窓」の追加・削除（英字IDは半角英字で。記事との紐付けに使います）
+- **お知らせ・近況** … 日時と短いメッセージ
+- **写真ギャラリー** … 写真をアップロード（キャプション・撮影日は任意）
+- **プロフィール** … 名前・ひとこと・自己紹介・好きなもの・リンク
+
+**保存（Publish）** すると、自動で公開されます（反映まで 1〜3 分）。
 
 > 画像はドラッグ＆ドロップでアップロードでき、`public/images/uploads/` に保存されます。
 > 画像を設定しなくても、記事は仮の枠（image slot）が表示され、レイアウトは崩れません。
@@ -224,7 +211,6 @@ npm run preview  # ビルド結果をローカル確認
 
 1. `vite.config.ts` の `base`（例: `/新しい名前/`。ユーザーサイト `saki-0306.github.io` の場合は `/`）
 2. `public/admin/config.yml` の `repo`
-3. GitHub OAuth App / Worker の各 URL（Homepage・callback・base_url）
 
 ---
 
@@ -232,7 +218,8 @@ npm run preview  # ビルド結果をローカル確認
 
 - **サイトが真っ白 / 404**: STEP 3 の Source が **GitHub Actions** になっているか、
   `vite.config.ts` の `base` がリポジトリ名と一致しているか確認。
-- **管理画面でログインできない**: `config.yml` の `base_url` と、OAuth App の callback URL
-  （`.../callback`）、Worker の Secret（Client ID / Secret）を再確認。
+- **管理画面でログインできない**: 「Sign In with Token」でトークンを貼れているか、
+  トークンの権限が **Contents = Read and write** かつ対象リポジトリが `saki-homepages` か、
+  有効期限が切れていないかを確認（切れていたら新しいトークンを発行して貼り直し）。
 - **保存したのに反映されない**: **Actions** タブでビルドが成功しているか確認（数分かかります）。
 - **管理画面が英語で表示される**: 表示言語はブラウザの言語設定に追従します。ブラウザを日本語にすると日本語になります。

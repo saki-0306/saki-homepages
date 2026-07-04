@@ -1,21 +1,16 @@
 # ===========================================================================
 # Sveltia CMS 設定ファイル
 # ---------------------------------------------------------------------------
-# ここを恋人（非エンジニア）が触る必要はありません。
-# ただし最初の一度だけ、GitHub のユーザー名/リポジトリ名と、
-# 認証用 Cloudflare Worker の URL を正しい値に書き換える必要があります。
-#   - repo:      あなたの「ユーザー名/リポジトリ名」
-#   - base_url:  sveltia-cms-auth Worker の URL（OAuth 認証サーバ）
+# 認証は「Personal Access Token（PAT）」方式を使います。
+# ログイン画面の「Sign In with Token」からトークンを貼るだけで入れます。
+# そのため Cloudflare Worker も OAuth アプリも不要で、base_url は書きません。
+# 変更が必要なのは repo（ユーザー名/リポジトリ名）だけです。
 # ===========================================================================
 
 backend:
   name: github
-  repo: saki-0306/saki-homepages # ← あなたの GitHub「ユーザー名/リポジトリ名」に変更
+  repo: saki-0306/saki-homepages # あなたの GitHub「ユーザー名/リポジトリ名」
   branch: main
-  # 「GitHubでログイン」ボタンの認証を担う Cloudflare Worker の URL。
-  # まだ Worker を作っていない場合は、この仮の値のままで OK。
-  # Worker を作ったら、その URL に書き換えてください（末尾スラッシュ無し）。
-  base_url: https://sveltia-cms-auth.your-name.workers.dev
 
 # アップロードした画像の保存先とサイト内での参照パス
 media_folder: public/images/uploads
