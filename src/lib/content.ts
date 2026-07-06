@@ -154,7 +154,9 @@ const profileRaw = import.meta.glob('../../content/profile.md', {
   import: 'default',
 }) as Record<string, string>
 
-const booksRaw = import.meta.glob('../../content/books/**/*.md', {
+// 1冊 = 1ファイル。章はフロントマターの chapters リストとして持つ
+// (Sveltia CMSの標準機能のみで完結させ、フォルダ分割によるすれ違いを避ける)
+const booksRaw = import.meta.glob('../../content/books/*.md', {
   eager: true,
   query: '?raw',
   import: 'default',
@@ -252,55 +254,34 @@ export const profile: Profile = (() => {
   }
 })()
 
-export const books: Book[] = (() => {
-  // フォルダごとにファイルをグループ化
-  const booksBySlug: Record<string, { metadata?: any; files: Array<{ path: string; data: any; body: string }> }> = {}
+export const books: Book[] = Object.entries(booksRaw)
+  .map(([path, raw]) => {
+    const { data } = parse(raw)
+    // 章の順番はリスト内の並び順そのもの(ドラッグで並べ替え可能)。
+    // 番号を別入力させると付け間違いが起こるため、常に並び順から自動採番する。
+    const chapters: Chapter[] = Array.isArray(data.chapters)
+      ? data.chapters.map((c: any, i: number) => ({
+          number: i + 1,
+          title: String(c?.title || ''),
+          body: String(c?.body || ''),
+        }))
+      : []
 
-  Object.entries(booksRaw).forEach(([path, raw]) => {
-    // path: content/books/sample-book/01-intro.md から slug を抽出
-    const match = path.match(/\/books\/([^/]+)\//)
-    if (!match) return
-    const slug = match[1]
-    if (!booksBySlug[slug]) {
-      booksBySlug[slug] = { files: [] }
-    }
-
-    const { data, body } = parse(raw)
-    const filename = fileSlug(path)
-
-    if (filename === 'metadata') {
-      booksBySlug[slug].metadata = data
-    } else {
-      booksBySlug[slug].files.push({ path, data, body })
+    return {
+      slug: fileSlug(path),
+      title: String(data.title || fileSlug(path)),
+      author: data.author ? String(data.author) : undefined,
+      genre: data.genre ? String(data.genre) : undefined,
+      coverImage: data.cover_image ? String(data.cover_image) : undefined,
+      description: data.description ? String(data.description) : undefined,
+      chapters,
+      published: toPublished(data.published),
+      password: toPassword(data.password),
+      productLinks: toProductLinks(data.product_links),
     }
   })
-
-  return Object.entries(booksBySlug)
-    .map(([slug, { metadata = {}, files }]) => {
-      const chapters = files
-        .map((f) => ({
-          number: Number(f.data.chapter_number ?? 0),
-          title: String(f.data.chapter_title || ''),
-          body: f.body,
-        }))
-        .sort((a, b) => a.number - b.number)
-
-      return {
-        slug,
-        title: String(metadata.title || slug),
-        author: metadata.author ? String(metadata.author) : undefined,
-        genre: metadata.genre ? String(metadata.genre) : undefined,
-        coverImage: metadata.cover_image ? String(metadata.cover_image) : undefined,
-        description: metadata.description ? String(metadata.description) : undefined,
-        chapters,
-        published: toPublished(metadata.published),
-        password: toPassword(metadata.password),
-        productLinks: toProductLinks(metadata.product_links),
-      }
-    })
-    .filter((b) => b.published)
-    .sort((a, b) => a.title.localeCompare(b.title))
-})()
+  .filter((b) => b.published)
+  .sort((a, b) => a.title.localeCompare(b.title))
 
 // ---- 参照ヘルパ -----------------------------------------------------------
 export function genreBySlug(slug?: string): Genre | undefined {

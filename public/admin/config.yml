@@ -163,20 +163,20 @@ collections:
               - { name: label, label: ラベル, widget: string }
               - { name: url, label: URL, widget: string }
 
-  # ---- ⑥ 書籍・本のまとめ（章ごと） ----------------------------------------
+  # ---- ⑥ 書籍・本のまとめ（1冊=1ファイル。章はこの中に追加していく） -------
   - name: books
     label: 書籍・本のまとめ
     label_singular: 書籍
-    description: 本を読んで、章ごとにまとめを書きます。各書籍フォルダ内に複数の章ファイルを作成。
+    description: >-
+      本のタイトルなどを入力したら、下の「章」欄の「＋ Add」で章を追加してください。
+      章は好きなだけ追加・並べ替えでき、この画面だけで本1冊が完結します。保存すればそのまま公開されます。
     folder: content/books
     create: true
     extension: md
     format: yaml-frontmatter
     identifier_field: title
-    slug: '{{slug}}'
     fields:
-      # ---- metadata.md 用のフィールド
-      - { name: title, label: 本のタイトル, widget: string, required: false }
+      - { name: title, label: 本のタイトル, widget: string }
       - { name: author, label: 著者, widget: string, required: false }
       - name: genre
         label: ジャンル
@@ -188,11 +188,20 @@ collections:
         required: false
       - { name: cover_image, label: 表紙画像（任意）, widget: image, required: false }
       - { name: description, label: 本の説明, widget: text, required: false }
-      - { name: chapter_count, label: 章数, widget: number, value_type: int, required: false }
-      - { name: published, label: 公開する（metadata.mdで設定）, widget: boolean, default: true, required: false, hint: 'オフにすると本全体が非公開になります' }
-      - { name: password, label: 閲覧パスワード（任意・metadata.mdで設定）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが本全体を閲覧できます' }
+      - name: chapters
+        label: 章
+        label_singular: 章
+        widget: list
+        required: false
+        hint: '「＋ Add」で章を追加。ドラッグで順番の並べ替えができます（表示の章番号は並び順どおりに自動で振られます）'
+        summary: '{{fields.title}}'
+        fields:
+          - { name: title, label: 章のタイトル, widget: string, hint: '例：はじめに、四つの窓、終わりに　など' }
+          - { name: body, label: 本文（Markdown）, widget: markdown }
+      - { name: published, label: 公開する, widget: boolean, default: true, hint: 'オフにすると本全体が非公開になります' }
+      - { name: password, label: 閲覧パスワード（任意）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが本全体を閲覧できます' }
       - name: product_links
-        label: 購入リンク（任意・metadata.mdで設定）
+        label: 購入リンク（任意）
         widget: list
         required: false
         hint: '本のページ上部にカードで表示されます（例：Amazon・楽天ブックスなど）'
@@ -200,7 +209,3 @@ collections:
           - { name: label, label: 表示名, widget: string, hint: '例：Amazonで購入する' }
           - { name: url, label: URL, widget: string }
           - { name: image, label: サムネイル画像（任意）, widget: image, required: false }
-      # ---- 章ファイル用のフィールド
-      - { name: chapter_number, label: 章番号, widget: number, value_type: int, required: false }
-      - { name: chapter_title, label: 章のタイトル, widget: string, required: false }
-      - { name: body, label: 本文, widget: markdown, required: false }
