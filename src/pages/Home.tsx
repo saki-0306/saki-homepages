@@ -314,12 +314,16 @@ export default function Home() {
                       lineHeight: 1.5,
                       color: '#f2f5ee',
                       flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                     }}
                   >
                     {a.title}
+                    {a.password && <span style={{ fontSize: '0.7em' }}>🔒</span>}
                   </span>
                   <span style={{ fontFamily: F.serif, fontSize: 14, lineHeight: 1.7, color: '#c3d3c6' }}>
-                    {excerpt(a.body)}
+                    {a.password ? 'パスワードで保護されています' : excerpt(a.body)}
                   </span>
                   <span style={{ fontFamily: F.garamond, fontStyle: 'italic', fontSize: 14, color: '#9dbca7' }}>
                     {fmtDate(a.date)}

@@ -130,9 +130,13 @@ export default function Books() {
                       color: C.ink,
                       lineHeight: 1.4,
                       marginBottom: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                     }}
                   >
                     {book.title}
+                    {book.password && <span style={{ fontSize: '0.7em' }}>🔒</span>}
                   </div>
                   {book.author && (
                     <div style={{ fontFamily: F.serif, fontSize: 13, color: C.muted2, marginBottom: 8 }}>

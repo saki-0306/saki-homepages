@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { articleById, genreBySlug, fmtDate } from '../lib/content'
 import Markdown from '../components/Markdown'
+import PasswordGate, { isUnlocked } from '../components/PasswordGate'
 import { asset, C, F } from '../theme'
 
 export default function Article() {
   const { id } = useParams()
   const article = articleById(id)
+  const [unlocked, setUnlocked] = useState(() => (article ? isUnlocked('article', article.id) : false))
 
   if (!article) {
     return (
@@ -21,6 +24,20 @@ export default function Article() {
   }
 
   const genre = genreBySlug(article.genre)
+
+  if (article.password && !unlocked) {
+    return (
+      <div style={{ paddingTop: 66 }}>
+        <PasswordGate
+          scope="article"
+          id={article.id}
+          password={article.password}
+          title={article.title}
+          onUnlock={() => setUnlocked(true)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div style={{ paddingTop: 66 }}>

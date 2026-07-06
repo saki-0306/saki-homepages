@@ -114,7 +114,7 @@ export default function Genre() {
                   {fmtDate(a.date)}
                 </span>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {a.image && (
+                  {a.image && !a.password && (
                     <img
                       src={asset(a.image)}
                       alt=""
@@ -128,12 +128,16 @@ export default function Genre() {
                       fontSize: 'clamp(23px,2.8vw,32px)',
                       color: C.ink,
                       lineHeight: 1.45,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
                     }}
                   >
                     {a.title}
+                    {a.password && <span style={{ fontSize: '0.55em' }}>🔒</span>}
                   </span>
                   <span style={{ fontFamily: F.serif, fontSize: 16, lineHeight: 1.85, color: C.muted3, maxWidth: 640 }}>
-                    {excerpt(a.body)}
+                    {a.password ? 'パスワードで保護されています' : excerpt(a.body)}
                   </span>
                 </span>
                 <span style={{ fontFamily: F.sans, fontSize: 20, color: C.green }}>→</span>

@@ -1,6 +1,98 @@
+import { useState } from 'react'
 import { photos, fmtDate } from '../lib/content'
 import { asset, C, F } from '../theme'
 import { useParallax } from '../hooks/useParallax'
+import PasswordGate, { isUnlocked } from '../components/PasswordGate'
+
+function PhotoCard({ p }: { p: (typeof photos)[number] }) {
+  const [unlocked, setUnlocked] = useState(() => isUnlocked('photo', p.id))
+
+  if (p.password && !unlocked) {
+    return (
+      <figure data-reveal style={{ margin: 0 }}>
+        <div
+          style={{
+            width: '100%',
+            aspectRatio: '4 / 5',
+            borderRadius: 4,
+            background: 'rgba(34,64,47,.06)',
+            border: '1px solid rgba(34,64,47,.14)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <PasswordGate scope="photo" id={p.id} password={p.password} inline onUnlock={() => setUnlocked(true)} />
+        </div>
+      </figure>
+    )
+  }
+
+  return (
+    <figure data-reveal style={{ margin: 0 }}>
+      {p.image ? (
+        <img
+          src={asset(p.image)}
+          alt={p.caption || ''}
+          style={{
+            width: '100%',
+            aspectRatio: '4 / 5',
+            objectFit: 'cover',
+            borderRadius: 4,
+            display: 'block',
+            background: 'rgba(34,64,47,.06)',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: '100%',
+            aspectRatio: '4 / 5',
+            borderRadius: 4,
+            backgroundImage:
+              'repeating-linear-gradient(-45deg,rgba(34,64,47,.05) 0,rgba(34,64,47,.05) 10px,transparent 10px,transparent 20px)',
+            border: '1px solid rgba(34,64,47,.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'ui-monospace,monospace',
+            fontSize: 12,
+            color: C.muted,
+          }}
+        >
+          image slot
+        </div>
+      )}
+      {(p.caption || p.date) && (
+        <figcaption
+          style={{
+            marginTop: 12,
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <span style={{ fontFamily: F.serif, fontSize: 15, color: C.ink2, lineHeight: 1.6 }}>{p.caption}</span>
+          {p.date && (
+            <span
+              style={{
+                fontFamily: F.garamond,
+                fontStyle: 'italic',
+                fontSize: 13,
+                color: C.muted,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {fmtDate(p.date)}
+            </span>
+          )}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
 
 export default function Gallery() {
   useParallax([])
@@ -81,61 +173,7 @@ export default function Gallery() {
             }}
           >
             {photos.map((p) => (
-              <figure key={p.id} data-reveal style={{ margin: 0 }}>
-                {p.image ? (
-                  <img
-                    src={asset(p.image)}
-                    alt={p.caption || ''}
-                    style={{
-                      width: '100%',
-                      aspectRatio: '4 / 5',
-                      objectFit: 'cover',
-                      borderRadius: 4,
-                      display: 'block',
-                      background: 'rgba(34,64,47,.06)',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      aspectRatio: '4 / 5',
-                      borderRadius: 4,
-                      backgroundImage:
-                        'repeating-linear-gradient(-45deg,rgba(34,64,47,.05) 0,rgba(34,64,47,.05) 10px,transparent 10px,transparent 20px)',
-                      border: '1px solid rgba(34,64,47,.12)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'ui-monospace,monospace',
-                      fontSize: 12,
-                      color: C.muted,
-                    }}
-                  >
-                    image slot
-                  </div>
-                )}
-                {(p.caption || p.date) && (
-                  <figcaption
-                    style={{
-                      marginTop: 12,
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
-                    <span style={{ fontFamily: F.serif, fontSize: 15, color: C.ink2, lineHeight: 1.6 }}>
-                      {p.caption}
-                    </span>
-                    {p.date && (
-                      <span style={{ fontFamily: F.garamond, fontStyle: 'italic', fontSize: 13, color: C.muted, whiteSpace: 'nowrap' }}>
-                        {fmtDate(p.date)}
-                      </span>
-                    )}
-                  </figcaption>
-                )}
-              </figure>
+              <PhotoCard key={p.id} p={p} />
             ))}
           </div>
         ) : (

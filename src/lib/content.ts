@@ -19,12 +19,16 @@ export type Article = {
   genre: string // Genre.slug への参照
   image?: string
   body: string
+  published: boolean
+  password?: string
 }
 
 export type NewsItem = {
   id: string
   date: string
   message: string
+  published: boolean
+  password?: string
 }
 
 export type Photo = {
@@ -32,6 +36,8 @@ export type Photo = {
   image?: string
   caption?: string
   date?: string
+  published: boolean
+  password?: string
 }
 
 export type ProfileLink = { label: string; url: string }
@@ -58,6 +64,19 @@ export type Book = {
   coverImage?: string
   description?: string
   chapters: Chapter[]
+  published: boolean
+  password?: string
+}
+
+// published フィールドが未設定(既存コンテンツ)の場合は「公開」として扱う
+function toPublished(v: any): boolean {
+  return v === false || v === 'false' ? false : true
+}
+
+// password フィールドが空文字なら「保護なし」として扱う
+function toPassword(v: any): string | undefined {
+  const s = v == null ? '' : String(v).trim()
+  return s ? s : undefined
 }
 
 // ---- フロントマター分解 ---------------------------------------------------
@@ -154,8 +173,11 @@ export const articles: Article[] = Object.entries(blogRaw)
       genre: String(data.genre || ''),
       image: data.image ? String(data.image) : undefined,
       body,
+      published: toPublished(data.published),
+      password: toPassword(data.password),
     }
   })
+  .filter((a) => a.published)
   .sort(byDateDesc)
 
 export const news: NewsItem[] = Object.entries(newsRaw)
@@ -165,8 +187,11 @@ export const news: NewsItem[] = Object.entries(newsRaw)
       id: fileSlug(path),
       date: toDateStr(data.date),
       message: String(data.message || body || ''),
+      published: toPublished(data.published),
+      password: toPassword(data.password),
     }
   })
+  .filter((n) => n.published)
   .sort(byDateDesc)
 
 export const photos: Photo[] = Object.entries(galleryRaw)
@@ -177,8 +202,11 @@ export const photos: Photo[] = Object.entries(galleryRaw)
       image: data.image ? String(data.image) : undefined,
       caption: data.caption ? String(data.caption) : undefined,
       date: data.date ? toDateStr(data.date) : undefined,
+      published: toPublished(data.published),
+      password: toPassword(data.password),
     }
   })
+  .filter((p) => p.published)
   .sort(byDateDesc)
 
 export const profile: Profile = (() => {
@@ -248,8 +276,11 @@ export const books: Book[] = (() => {
         coverImage: metadata.cover_image ? String(metadata.cover_image) : undefined,
         description: metadata.description ? String(metadata.description) : undefined,
         chapters,
+        published: toPublished(metadata.published),
+        password: toPassword(metadata.password),
       }
     })
+    .filter((b) => b.published)
     .sort((a, b) => a.title.localeCompare(b.title))
 })()
 

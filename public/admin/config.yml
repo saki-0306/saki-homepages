@@ -54,6 +54,8 @@ collections:
         display_fields: [name]
       - { name: image, label: アイキャッチ画像（任意）, widget: image, required: false }
       - { name: body, label: 本文, widget: markdown }
+      - { name: published, label: 公開する, widget: boolean, default: true, hint: 'オフにすると非公開（下書き）になり、サイトから見えなくなります' }
+      - { name: password, label: 閲覧パスワード（任意）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが閲覧できます（空欄なら誰でも閲覧可）' }
 
   # ---- ② ジャンル（哲学・文学・語学・社会学…追加も可） --------------------
   - name: genres
@@ -94,6 +96,8 @@ collections:
     fields:
       - { name: date, label: 日時, widget: datetime }
       - { name: message, label: メッセージ, widget: text }
+      - { name: published, label: 公開する, widget: boolean, default: true, hint: 'オフにすると非公開（下書き）になり、サイトから見えなくなります' }
+      - { name: password, label: 閲覧パスワード（任意）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが閲覧できます（空欄なら誰でも閲覧可）' }
 
   # ---- ④ 写真ギャラリー ---------------------------------------------------
   - name: gallery
@@ -119,6 +123,8 @@ collections:
           format: 'YYYY-MM-DD',
           required: false,
         }
+      - { name: published, label: 公開する, widget: boolean, default: true, hint: 'オフにすると非公開（下書き）になり、サイトから見えなくなります' }
+      - { name: password, label: 閲覧パスワード（任意）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが閲覧できます（空欄なら誰でも閲覧可）' }
 
   # ---- ⑤ プロフィール（1ページのみ） -------------------------------------
   - name: profile
@@ -174,6 +180,8 @@ collections:
       - { name: cover_image, label: 表紙画像（任意）, widget: image, required: false }
       - { name: description, label: 本の説明, widget: text, required: false }
       - { name: chapter_count, label: 章数, widget: number, value_type: int, required: false }
+      - { name: published, label: 公開する（metadata.mdで設定）, widget: boolean, default: true, required: false, hint: 'オフにすると本全体が非公開になります' }
+      - { name: password, label: 閲覧パスワード（任意・metadata.mdで設定）, widget: string, required: false, hint: '入力すると、このパスワードを知っている人だけが本全体を閲覧できます' }
       # ---- 章ファイル用のフィールド
       - { name: chapter_number, label: 章番号, widget: number, value_type: int, required: false }
       - { name: chapter_title, label: 章のタイトル, widget: string, required: false }

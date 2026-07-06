@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { bookBySlug } from '../lib/content'
 import Markdown from '../components/Markdown'
+import PasswordGate, { isUnlocked } from '../components/PasswordGate'
 import { asset, C, F } from '../theme'
 
 export default function Book() {
   const { slug } = useParams()
   const book = bookBySlug(slug)
+  const [unlocked, setUnlocked] = useState(() => (book ? isUnlocked('book', book.slug) : false))
 
   if (!book) {
     return (
@@ -16,6 +19,20 @@ export default function Book() {
             ← 一覧へ戻る
           </Link>
         </div>
+      </div>
+    )
+  }
+
+  if (book.password && !unlocked) {
+    return (
+      <div style={{ paddingTop: 66 }}>
+        <PasswordGate
+          scope="book"
+          id={book.slug}
+          password={book.password}
+          title={book.title}
+          onUnlock={() => setUnlocked(true)}
+        />
       </div>
     )
   }

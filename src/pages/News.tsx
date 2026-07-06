@@ -1,6 +1,45 @@
+import { useState } from 'react'
 import { news, fmtDate } from '../lib/content'
 import { asset, C, F } from '../theme'
 import { useParallax } from '../hooks/useParallax'
+import PasswordGate, { isUnlocked } from '../components/PasswordGate'
+
+function NewsRow({ n }: { n: (typeof news)[number] }) {
+  const [unlocked, setUnlocked] = useState(() => isUnlocked('news', n.id))
+
+  return (
+    <div
+      data-reveal
+      style={{
+        borderTop: '1px solid rgba(27,27,25,.12)',
+        padding: '30px 8px',
+        display: 'grid',
+        gridTemplateColumns: '130px 1fr',
+        gap: 24,
+        alignItems: 'baseline',
+      }}
+    >
+      <span style={{ fontFamily: F.garamond, fontStyle: 'italic', fontSize: 16, color: C.muted }}>
+        {fmtDate(n.date)}
+      </span>
+      {n.password && !unlocked ? (
+        <PasswordGate scope="news" id={n.id} password={n.password} inline onUnlock={() => setUnlocked(true)} />
+      ) : (
+        <p
+          style={{
+            margin: 0,
+            fontFamily: F.serif,
+            fontSize: 'clamp(17px,2vw,20px)',
+            lineHeight: 1.9,
+            color: C.ink2,
+          }}
+        >
+          {n.message}
+        </p>
+      )}
+    </div>
+  )
+}
 
 export default function News() {
   useParallax([])
@@ -75,33 +114,7 @@ export default function News() {
         {news.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {news.map((n) => (
-              <div
-                key={n.id}
-                data-reveal
-                style={{
-                  borderTop: '1px solid rgba(27,27,25,.12)',
-                  padding: '30px 8px',
-                  display: 'grid',
-                  gridTemplateColumns: '130px 1fr',
-                  gap: 24,
-                  alignItems: 'baseline',
-                }}
-              >
-                <span style={{ fontFamily: F.garamond, fontStyle: 'italic', fontSize: 16, color: C.muted }}>
-                  {fmtDate(n.date)}
-                </span>
-                <p
-                  style={{
-                    margin: 0,
-                    fontFamily: F.serif,
-                    fontSize: 'clamp(17px,2vw,20px)',
-                    lineHeight: 1.9,
-                    color: C.ink2,
-                  }}
-                >
-                  {n.message}
-                </p>
-              </div>
+              <NewsRow key={n.id} n={n} />
             ))}
           </div>
         ) : (
