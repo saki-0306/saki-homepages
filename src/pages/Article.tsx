@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { articleById, genreBySlug, fmtDate } from '../lib/content'
 import Markdown from '../components/Markdown'
 import PasswordGate, { isUnlocked } from '../components/PasswordGate'
+import ProductLinks from '../components/ProductLinks'
 import { asset, C, F } from '../theme'
 
 export default function Article() {
@@ -122,6 +123,7 @@ export default function Article() {
         )}
 
         <Markdown source={article.body} />
+        <ProductLinks links={article.productLinks} />
       </article>
     </div>
   )

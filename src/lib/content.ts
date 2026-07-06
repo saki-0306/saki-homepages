@@ -12,6 +12,8 @@ export type Genre = {
   order: number
 }
 
+export type ProductLink = { label: string; url: string; image?: string }
+
 export type Article = {
   id: string
   title: string
@@ -21,6 +23,7 @@ export type Article = {
   body: string
   published: boolean
   password?: string
+  productLinks: ProductLink[]
 }
 
 export type NewsItem = {
@@ -66,6 +69,7 @@ export type Book = {
   chapters: Chapter[]
   published: boolean
   password?: string
+  productLinks: ProductLink[]
 }
 
 // published フィールドが未設定(既存コンテンツ)の場合は「公開」として扱う
@@ -77,6 +81,18 @@ function toPublished(v: any): boolean {
 function toPassword(v: any): string | undefined {
   const s = v == null ? '' : String(v).trim()
   return s ? s : undefined
+}
+
+// product_links フィールド(list: label/url/image)を安全にパースする
+function toProductLinks(v: any): ProductLink[] {
+  if (!Array.isArray(v)) return []
+  return v
+    .filter((l: any) => l && l.url)
+    .map((l: any) => ({
+      label: String(l.label || 'リンク'),
+      url: String(l.url),
+      image: l.image ? String(l.image) : undefined,
+    }))
 }
 
 // ---- フロントマター分解 ---------------------------------------------------
@@ -175,6 +191,7 @@ export const articles: Article[] = Object.entries(blogRaw)
       body,
       published: toPublished(data.published),
       password: toPassword(data.password),
+      productLinks: toProductLinks(data.product_links),
     }
   })
   .filter((a) => a.published)
@@ -278,6 +295,7 @@ export const books: Book[] = (() => {
         chapters,
         published: toPublished(metadata.published),
         password: toPassword(metadata.password),
+        productLinks: toProductLinks(metadata.product_links),
       }
     })
     .filter((b) => b.published)

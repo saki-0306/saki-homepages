@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { bookBySlug } from '../lib/content'
 import Markdown from '../components/Markdown'
 import PasswordGate, { isUnlocked } from '../components/PasswordGate'
+import ProductLinks from '../components/ProductLinks'
 import { asset, C, F } from '../theme'
 
 export default function Book() {
@@ -119,6 +120,8 @@ export default function Book() {
             </div>
           </div>
         </div>
+
+        <ProductLinks links={book.productLinks} />
 
         <div style={{ width: 52, height: 2, background: C.green, margin: '44px 0' }} />
 
