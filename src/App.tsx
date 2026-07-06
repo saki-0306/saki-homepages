@@ -8,6 +8,8 @@ import Article from './pages/Article'
 import Profile from './pages/Profile'
 import News from './pages/News'
 import Gallery from './pages/Gallery'
+import Books from './pages/Books'
+import Book from './pages/Book'
 import NotFound from './pages/NotFound'
 import { C } from './theme'
 
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/article/:id" element={<Article />} />
         <Route path="/news" element={<News />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/books" element={<Books />} />
+        <Route path="/books/:slug" element={<Book />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

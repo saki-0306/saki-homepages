@@ -147,3 +147,34 @@ collections:
             fields:
               - { name: label, label: ラベル, widget: string }
               - { name: url, label: URL, widget: string }
+
+  # ---- ⑥ 書籍・本のまとめ（章ごと） ----------------------------------------
+  - name: books
+    label: 書籍・本のまとめ
+    label_singular: 書籍
+    description: 本を読んで、章ごとにまとめを書きます。各書籍フォルダ内に複数の章ファイルを作成。
+    folder: content/books
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: title
+    slug: '{{slug}}'
+    fields:
+      # ---- metadata.md 用のフィールド
+      - { name: title, label: 本のタイトル, widget: string, required: false }
+      - { name: author, label: 著者, widget: string, required: false }
+      - name: genre
+        label: ジャンル
+        widget: relation
+        collection: genres
+        value_field: slug
+        search_fields: [name, kicker]
+        display_fields: [name]
+        required: false
+      - { name: cover_image, label: 表紙画像（任意）, widget: image, required: false }
+      - { name: description, label: 本の説明, widget: text, required: false }
+      - { name: chapter_count, label: 章数, widget: number, value_type: int, required: false }
+      # ---- 章ファイル用のフィールド
+      - { name: chapter_number, label: 章番号, widget: number, value_type: int, required: false }
+      - { name: chapter_title, label: 章のタイトル, widget: string, required: false }
+      - { name: body, label: 本文, widget: markdown, required: false }

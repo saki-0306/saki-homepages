@@ -44,6 +44,22 @@ export type Profile = {
   links: ProfileLink[]
 }
 
+export type Chapter = {
+  number: number
+  title: string
+  body: string
+}
+
+export type Book = {
+  slug: string
+  title: string
+  author?: string
+  genre?: string
+  coverImage?: string
+  description?: string
+  chapters: Chapter[]
+}
+
 // ---- フロントマター分解 ---------------------------------------------------
 type Parsed = { data: Record<string, any>; body: string }
 function parse(raw: string): Parsed {
@@ -98,6 +114,12 @@ const galleryRaw = import.meta.glob('../../content/gallery/*.md', {
 }) as Record<string, string>
 
 const profileRaw = import.meta.glob('../../content/profile.md', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>
+
+const booksRaw = import.meta.glob('../../content/books/**/*.md', {
   eager: true,
   query: '?raw',
   import: 'default',
@@ -185,6 +207,52 @@ export const profile: Profile = (() => {
   }
 })()
 
+export const books: Book[] = (() => {
+  // フォルダごとにファイルをグループ化
+  const booksBySlug: Record<string, { metadata?: any; files: Array<{ path: string; data: any; body: string }> }> = {}
+
+  Object.entries(booksRaw).forEach(([path, raw]) => {
+    // path: content/books/sample-book/01-intro.md から slug を抽出
+    const match = path.match(/\/books\/([^/]+)\//)
+    if (!match) return
+    const slug = match[1]
+    if (!booksBySlug[slug]) {
+      booksBySlug[slug] = { files: [] }
+    }
+
+    const { data, body } = parse(raw)
+    const filename = fileSlug(path)
+
+    if (filename === 'metadata') {
+      booksBySlug[slug].metadata = data
+    } else {
+      booksBySlug[slug].files.push({ path, data, body })
+    }
+  })
+
+  return Object.entries(booksBySlug)
+    .map(([slug, { metadata = {}, files }]) => {
+      const chapters = files
+        .map((f) => ({
+          number: Number(f.data.chapter_number ?? 0),
+          title: String(f.data.chapter_title || ''),
+          body: f.body,
+        }))
+        .sort((a, b) => a.number - b.number)
+
+      return {
+        slug,
+        title: String(metadata.title || slug),
+        author: metadata.author ? String(metadata.author) : undefined,
+        genre: metadata.genre ? String(metadata.genre) : undefined,
+        coverImage: metadata.cover_image ? String(metadata.cover_image) : undefined,
+        description: metadata.description ? String(metadata.description) : undefined,
+        chapters,
+      }
+    })
+    .sort((a, b) => a.title.localeCompare(b.title))
+})()
+
 // ---- 参照ヘルパ -----------------------------------------------------------
 export function genreBySlug(slug?: string): Genre | undefined {
   return genres.find((g) => g.slug === slug)
@@ -200,6 +268,10 @@ export function articleById(id?: string): Article | undefined {
 
 export function articleCount(slug: string): number {
   return articles.filter((a) => a.genre === slug).length
+}
+
+export function bookBySlug(slug?: string): Book | undefined {
+  return books.find((b) => b.slug === slug)
 }
 
 // 日付 2026-06-30 → 2026.06.30 の表記に整える

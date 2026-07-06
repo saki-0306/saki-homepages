@@ -75,6 +75,9 @@ export default function Nav() {
         <Link to="/gallery" style={linkStyle(pathname.startsWith('/gallery'))}>
           写真
         </Link>
+        <Link to="/books" style={linkStyle(pathname.startsWith('/books'))}>
+          書籍
+        </Link>
         <Link to="/profile" style={linkStyle(pathname.startsWith('/profile'))}>
           プロフィール
         </Link>
